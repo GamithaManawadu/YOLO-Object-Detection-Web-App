@@ -178,14 +178,16 @@ def show_export_buttons(df: pd.DataFrame, annotated_rgb: np.ndarray):
             "📄 Download CSV",
             data=df.to_csv(index=False),
             file_name="detections.csv",
-            mime="text/csv"
+            mime="text/csv",
+            key="download_csv"
         )
     with exp_col2:
         st.download_button(
             "📋 Download JSON",
             data=df.to_json(orient="records", indent=2),
             file_name="detections.json",
-            mime="application/json"
+            mime="application/json",
+            key="download_json"
         )
     with exp_col3:
         buf = io.BytesIO()
@@ -194,7 +196,8 @@ def show_export_buttons(df: pd.DataFrame, annotated_rgb: np.ndarray):
             "📥 Download Image",
             data=buf.getvalue(),
             file_name="detected.png",
-            mime="image/png"
+            mime="image/png",
+            key="download_image"
         )
 
 
