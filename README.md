@@ -7,8 +7,8 @@ A full-featured web application that detects objects in images, batch uploads, v
 > **💡 [View the Interactive Explanation →](https://htmlpreview.github.io/?https://github.com/GamithaManawadu/yolo-detector/blob/main/Explanations/yolo-app-explained.html)**
 
 <p align="center">
-  <img src="images/demo_screenshot.png" width="48%">
-  <img src="images/detection_example.png" width="48%">
+  <img src="images/demo_screenshots.png" width="48%">
+  <img src="images/detection_examples.png" width="48%">
 </p>
 
 ## How It Works
