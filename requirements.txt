@@ -2,7 +2,7 @@ streamlit
 ultralytics
 pillow
 numpy
-opencv-python
+opencv-python-headless
 plotly
 pandas
 scipy

@@ -146,7 +146,7 @@ def build_detections_df(boxes, model_names, filter_classes=None) -> pd.DataFrame
     return pd.DataFrame(rows)
 
 
-def show_charts(df: pd.DataFrame):
+def show_charts(df: pd.DataFrame, suffix: str = ""):
     """Bar chart of detections per class + confidence histogram."""
     if df.empty:
         return
@@ -158,17 +158,17 @@ def show_charts(df: pd.DataFrame):
         fig = px.bar(counts, x="Class", y="Count", title="Detections per Class",
                      color="Count", color_continuous_scale="viridis")
         fig.update_layout(showlegend=False, height=300)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key=f"bar_chart_{suffix}")
 
     with chart_col2:
         fig = px.histogram(df, x="Confidence", nbins=20,
                            title="Confidence Score Distribution",
                            color_discrete_sequence=["#636EFA"])
         fig.update_layout(height=300)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key=f"hist_chart_{suffix}")
 
 
-def show_export_buttons(df: pd.DataFrame, annotated_rgb: np.ndarray):
+def show_export_buttons(df: pd.DataFrame, annotated_rgb: np.ndarray, suffix: str = ""):
     """CSV, JSON, and annotated-image download buttons."""
     st.markdown("#### Export Results")
     exp_col1, exp_col2, exp_col3 = st.columns(3)
@@ -179,7 +179,7 @@ def show_export_buttons(df: pd.DataFrame, annotated_rgb: np.ndarray):
             data=df.to_csv(index=False),
             file_name="detections.csv",
             mime="text/csv",
-            key="download_csv"
+            key=f"download_csv_{suffix}"
         )
     with exp_col2:
         st.download_button(
@@ -187,7 +187,7 @@ def show_export_buttons(df: pd.DataFrame, annotated_rgb: np.ndarray):
             data=df.to_json(orient="records", indent=2),
             file_name="detections.json",
             mime="application/json",
-            key="download_json"
+            key=f"download_json_{suffix}"
         )
     with exp_col3:
         buf = io.BytesIO()
@@ -197,7 +197,7 @@ def show_export_buttons(df: pd.DataFrame, annotated_rgb: np.ndarray):
             data=buf.getvalue(),
             file_name="detected.png",
             mime="image/png",
-            key="download_image"
+            key=f"download_image_{suffix}"
         )
 
 
@@ -233,10 +233,10 @@ def run_detection_and_display(image: Image.Image, label: str = "") -> pd.DataFra
         mcol1.metric("Objects Detected", len(df))
         mcol2.metric("Unique Classes", df["Class"].nunique())
         mcol3.metric("Avg Confidence", f"{df['Confidence'].mean():.1%}")
-        show_charts(df)
+        show_charts(df, suffix=f"main_{label}")
         st.dataframe(df, use_container_width=True)
         st.markdown("---")
-        show_export_buttons(df, annotated_rgb)
+        show_export_buttons(df, annotated_rgb, suffix=f"main_{label}")
     else:
         st.warning("No objects detected. Try lowering the confidence threshold.")
 
@@ -285,10 +285,10 @@ with tab_image:
             mcol1.metric("Objects Detected", len(df))
             mcol2.metric("Unique Classes", df["Class"].nunique())
             mcol3.metric("Avg Confidence", f"{df['Confidence'].mean():.1%}")
-            show_charts(df)
+            show_charts(df, suffix="sample")
             st.dataframe(df, use_container_width=True)
             st.markdown("---")
-            show_export_buttons(df, annotated_rgb)
+            show_export_buttons(df, annotated_rgb, suffix="sample")
 
     else:
         uploaded_file = st.file_uploader(
@@ -339,7 +339,7 @@ with tab_batch:
             combined_df = pd.concat(all_dfs, ignore_index=True)
             st.markdown("---")
             st.markdown("## Aggregate Results — All Images")
-            show_charts(combined_df)
+            show_charts(combined_df, suffix="batch_aggregate")
             st.download_button(
                 "📄 Download All Results (CSV)",
                 data=combined_df.to_csv(index=False),
@@ -454,7 +454,7 @@ with tab_video:
             else:
                 vcol3.metric("Frames Processed", frame_idx)
 
-            show_charts(video_df)
+            show_charts(video_df, suffix="video")
 
             # Detections over time line chart
             by_frame = video_df.groupby("Frame").size().reset_index(name="Detections")
