@@ -2,7 +2,7 @@
 
 A full-featured web application that detects objects in images, batch uploads, video, and webcam feeds using YOLOv8. Built with Streamlit and deployed on HuggingFace Spaces.
 
-> **🌐 [Try the Live Demo →](https://huggingface.co/spaces/YOUR_USERNAME/yolo-detector)**
+> **🌐 [Try the Live Demo →](https://huggingface.co/spaces/Gamitha/yolo-detector)**
 >
 > **💡 [View the Interactive Explanation →](https://htmlpreview.github.io/?https://github.com/GamithaManawadu/yolo-detector/blob/main/Explanations/yolo-app-explained.html)**
 

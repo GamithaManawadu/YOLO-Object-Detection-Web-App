@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YOLO Object Detection Web App</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F0F2F5;--card:#FFF;--yolo:#EF4444;--stream:#FF6B6B;--feat:#8B5CF6;--deploy:#10B981;--text:#1E293B;--text2:#64748B;--shadow:0 4px 24px rgba(239,68,68,.08);--radius:18px}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+  .hero{background:linear-gradient(135deg,#DC2626 0%,#7C3AED 50%,#059669 100%);padding:80px 24px 60px;text-align:center;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1.5' fill='%23ffffff' fill-opacity='0.06'/%3E%3C/svg%3E")}
+  .hero h1{font-family:'Fredoka',sans-serif;font-size:clamp(1.8rem,5vw,3rem);color:#fff;position:relative;margin-bottom:12px}
+  .hero p{color:rgba(255,255,255,.85);font-size:1.05rem;max-width:680px;margin:0 auto;position:relative}
+  .container{max-width:880px;margin:0 auto;padding:40px 20px 80px}
+  .section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:28px;overflow:hidden;border:1px solid rgba(0,0,0,.04)}
+  .section-header{padding:22px 26px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none;transition:background .2s}
+  .section-header:hover{background:rgba(0,0,0,.015)}
+  .section-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+  .section-title{font-family:'Fredoka',sans-serif;font-size:1.18rem;font-weight:600}
+  .section-subtitle{font-size:.83rem;color:var(--text2);margin-top:2px}
+  .toggle-arrow{margin-left:auto;font-size:1.1rem;transition:transform .3s;color:var(--text2)}
+  .section.open .toggle-arrow{transform:rotate(180deg)}
+  .section-body{max-height:0;overflow:hidden;transition:max-height .45s ease}
+  .section.open .section-body{max-height:none}
+  .section-content{padding:0 26px 26px}
+  .analogy{background:linear-gradient(135deg,#FFF3E0,#FFF8E1);border-left:4px solid #E67E22;border-radius:12px;padding:16px 18px;margin:14px 0;font-size:.93rem}
+  .analogy strong{color:#E67E22}
+  .key-point{background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border-left:4px solid #27AE60;border-radius:12px;padding:16px 18px;margin:14px 0}
+  .key-point strong{color:#27AE60}
+  .warning{background:linear-gradient(135deg,#FFEBEE,#FCE4EC);border-left:4px solid #E74C3C;border-radius:12px;padding:16px 18px;margin:14px 0}
+  .warning strong{color:#E74C3C}
+  .info-box{background:linear-gradient(135deg,#E3F2FD,#E8EAF6);border-left:4px solid #3B82F6;border-radius:12px;padding:16px 18px;margin:14px 0}
+  .info-box strong{color:#3B82F6}
+  .purple-box{background:linear-gradient(135deg,#F3E8FF,#EDE9FE);border-left:4px solid var(--feat);border-radius:12px;padding:16px 18px;margin:14px 0}
+  .purple-box strong{color:var(--feat)}
+  .nice-table{width:100%;border-collapse:separate;border-spacing:0;margin:14px 0;border-radius:12px;overflow:hidden;font-size:.86rem}
+  .nice-table th{padding:10px 14px;text-align:left;font-family:'Fredoka',sans-serif;font-weight:500;color:#fff}
+  .nice-table td{padding:9px 14px;border-bottom:1px solid #f0f0f0}
+  .nice-table tr:last-child td{border-bottom:none}
+  p+p{margin-top:11px}
+  h3.sub{font-family:'Fredoka',sans-serif;margin:18px 0 10px;font-size:1.05rem}
+  .flow{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin:16px 0;justify-content:center}
+  .flow-box{color:#fff;padding:8px 14px;border-radius:10px;font-size:.73rem;font-weight:500;text-align:center;min-width:70px}
+  .flow-arrow{font-size:1rem;color:#94A3B8}
+  .nb-img{width:100%;max-width:100%;height:auto;display:block;border-radius:12px;margin:14px 0;box-shadow:0 2px 12px rgba(0,0,0,.08);border:1px solid #e2e8f0}
+  .vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  .vs-card{border-radius:14px;padding:18px;border:2px solid}
+  .vs-card h4{font-family:'Fredoka',sans-serif;font-size:.95rem;margin-bottom:6px}
+  .vs-card p{font-size:.83rem;color:var(--text2);line-height:1.5}
+  @media(max-width:600px){.vs-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🔍 YOLO Object Detection Web App</h1>
+  <p>A full-featured Streamlit application with image detection, batch processing, video tracking, webcam capture, heatmaps, and export, deployed live on HuggingFace Spaces.</p>
+</div>
+
+<div class="container">
+
+<!-- BIG PICTURE -->
+<div class="section open">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:#FEE2E2;">🗺️</div>
+    <div><div class="section-title">What Does This App Do?</div><div class="section-subtitle">4 input modes, 5 model sizes, live deployment</div></div>
+    <span class="toggle-arrow">▼</span>
+  </div>
+  <div class="section-body"><div class="section-content">
+    <p>This is a complete web application that takes any image, video, or webcam feed and instantly detects all objects in it using YOLOv8. Unlike the previous notebook-based projects, this is a <strong>deployed product</strong> with a live URL anyone can try.</p>
+
+    <table class="nice-table">
+      <tr><th style="background:var(--yolo);">Tab</th><th style="background:var(--yolo);">Input</th><th style="background:var(--yolo);">Features</th></tr>
+      <tr><td><strong>📷 Single Image</strong></td><td>Upload one image or use sample</td><td>Detection + metrics + charts + heatmap + export</td></tr>
+      <tr><td><strong>🖼️ Batch Images</strong></td><td>Upload multiple images at once</td><td>Per-image results + aggregate charts + combined CSV</td></tr>
+      <tr><td><strong>🎬 Video</strong></td><td>Upload MP4/AVI/MOV</td><td>Frame-by-frame detection, optional object tracking with persistent IDs, detections-over-time chart</td></tr>
+      <tr><td><strong>📹 Webcam</strong></td><td>Browser camera capture</td><td>Take photo → instant detection</td></tr>
+    </table>
+
+  </div></div>
+</div>
+
+<!-- YOLO EXPLAINED -->
+<div class="section open">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:#FEE2E2;">🧠</div>
+    <div><div class="section-title">How YOLOv8 Works - You Only Look Once</div><div class="section-subtitle">Single-pass detection, 80 classes, 5 model sizes</div></div>
+    <span class="toggle-arrow">▼</span>
+  </div>
+  <div class="section-body"><div class="section-content">
+    <p>YOLO (You Only Look Once) revolutionised object detection by processing the <strong>entire image in a single forward pass</strong>. Older methods used sliding windows (slow) or region proposals (two-stage). YOLO predicts all bounding boxes and class probabilities simultaneously, making it fast enough for real-time detection.</p>
+
+    <div class="flow">
+      <div class="flow-box" style="background:var(--yolo);">Input<br>Image</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#7C3AED;">Backbone<br>(feature extraction)</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#3B82F6;">Neck<br>(multi-scale fusion)</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:var(--deploy);">Head<br>(boxes + classes)</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#F59E0B;">NMS<br>(remove duplicates)</div>
+    </div>
+
+    <table class="nice-table">
+      <tr><th style="background:var(--yolo);">Model</th><th style="background:var(--yolo);">Parameters</th><th style="background:var(--yolo);">Speed</th><th style="background:var(--yolo);">Best For</th></tr>
+      <tr><td><strong>YOLOv8n</strong> (Nano)</td><td>3.2M</td><td>Fastest</td><td>Real-time, mobile, demos</td></tr>
+      <tr><td>YOLOv8s (Small)</td><td>11.2M</td><td>Fast</td><td>Balanced speed/accuracy</td></tr>
+      <tr><td>YOLOv8m (Medium)</td><td>25.9M</td><td>Medium</td><td>Higher accuracy</td></tr>
+      <tr><td>YOLOv8l (Large)</td><td>43.7M</td><td>Slower</td><td>Precision-critical tasks</td></tr>
+      <tr><td>YOLOv8x (XLarge)</td><td>68.2M</td><td>Slowest</td><td>Maximum accuracy</td></tr>
+    </table>
+
+    <p>All five model sizes are selectable from the sidebar. The model is pre-trained on <strong>COCO</strong> (Common Objects in Context) - 80 classes including people, vehicles, animals, furniture, electronics, food, and more.</p>
+
+    <div class="info-box"><strong>📌 NMS (Non-Maximum Suppression):</strong> When YOLO detects the same object multiple times with overlapping boxes, NMS keeps only the best one. The IoU threshold (adjustable in the sidebar) controls how much overlap is allowed before a duplicate is removed.</div>
+  </div></div>
+</div>
+
+<!-- APP ARCHITECTURE -->
+<div class="section">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:#F3E8FF;">🏗️</div>
+    <div><div class="section-title">App Architecture</div><div class="section-subtitle">Streamlit + caching + helper functions + tabbed interface</div></div>
+    <span class="toggle-arrow">▼</span>
+  </div>
+  <div class="section-body"><div class="section-content">
+
+    <h3 class="sub" style="color:var(--feat);">Key Design Decisions</h3>
+
+    <table class="nice-table">
+      <tr><th style="background:var(--feat);">Pattern</th><th style="background:var(--feat);">What It Does</th><th style="background:var(--feat);">Why</th></tr>
+      <tr><td><strong>@st.cache_resource</strong></td><td>Caches the loaded YOLO model</td><td>Without caching, the model would reload on every interaction with 2–3 seconds wasted each time</td></tr>
+      <tr><td><strong>Tabbed interface</strong></td><td>4 tabs for different input modes</td><td>Clean UX where users find what they need without scrolling through everything</td></tr>
+      <tr><td><strong>run_detection_and_display()</strong></td><td>Single function handles detect → display → metrics → export</td><td>Reused across single image, batch, and webcam tabs : DRY principle</td></tr>
+      <tr><td><strong>build_detections_df()</strong></td><td>Converts YOLO box results to a Pandas DataFrame</td><td>Enables filtering, charting, CSV/JSON export in a structured format</td></tr>
+      <tr><td><strong>Sidebar controls</strong></td><td>Model size, confidence, IoU, preprocessing, class filter</td><td>Non-blocking controls that don't clutter the main content area</td></tr>
+    </table>
+
+    <h3 class="sub" style="color:var(--feat);">The Detection Pipeline</h3>
+    <div class="flow">
+      <div class="flow-box" style="background:var(--feat);">Upload<br>Image</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#E67E22;">Preprocess<br>(brightness,<br>contrast, sharpness)</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:var(--yolo);">YOLO<br>Detect</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:#3B82F6;">Filter by<br>class/conf</div><span class="flow-arrow">→</span>
+      <div class="flow-box" style="background:var(--deploy);">Display +<br>Charts +<br>Export</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- FEATURES DEEP DIVE -->
+<div class="section">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:#D1FAE5;">✨</div>
+    <div><div class="section-title">Features Deep Dive</div><div class="section-subtitle">Heatmaps, preprocessing, video tracking, batch processing, export</div></div>
+    <span class="toggle-arrow">▼</span>
+  </div>
+  <div class="section-body"><div class="section-content">
+
+    <h3 class="sub" style="color:var(--deploy);">Detection Heatmap</h3>
+    <p>Instead of bounding boxes, the heatmap mode creates a <strong>confidence-weighted density map</strong>. Each detection's bounding box area is filled with its confidence score, then the whole map is smoothed with a Gaussian filter (σ=20) and overlaid on the original image using a JET colourmap. Red = high detection density, blue = low. This is useful for understanding spatial patterns — like "most people cluster near the door."</p>
+
+    <h3 class="sub" style="color:var(--deploy);">Image Preprocessing</h3>
+    <p>The sidebar offers brightness, contrast, and sharpness sliders (0.5× to 2.0×). These adjust the image <em>before</em> detection using PIL's ImageEnhance. This helps with poor-quality uploads — a dark photo can be brightened to help YOLO detect objects it would otherwise miss.</p>
+
+    <h3 class="sub" style="color:var(--deploy);">Video Detection + Object Tracking</h3>
+    <p>The video tab processes uploaded videos frame-by-frame. With tracking enabled, YOLO assigns <strong>persistent IDs</strong> to objects across frames — so "Person #3" stays "Person #3" even as they move. The app generates a "Detections per Frame Over Time" line chart, an annotated video download, and a CSV of all detections with frame numbers and track IDs.</p>
+
+    <h3 class="sub" style="color:var(--deploy);">Batch Processing</h3>
+    <p>Upload multiple images at once. Each gets individual detection results, then an <strong>aggregate summary</strong> combines all detections into a single bar chart and downloadable CSV. Useful for analysing a whole folder of images at once.</p>
+
+    <h3 class="sub" style="color:var(--deploy);">Export Options</h3>
+    <p>Every detection can be exported in three formats: <strong>CSV</strong> (for spreadsheets), <strong>JSON</strong> (for APIs), and <strong>annotated PNG</strong> (for sharing). The DataFrame includes class name, confidence, bounding box coordinates (x1, y1, x2, y2), and box dimensions (width, height).</p>
+  </div></div>
+</div>
+
+<!-- TECH STACK -->
+<div class="section">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:#E0E7FF;">🛠️</div>
+    <div><div class="section-title">Tech Stack Explained</div><div class="section-subtitle">What each library does and why it was chosen</div></div>
+    <span class="toggle-arrow">▼</span>
+  </div>
+  <div class="section-body"><div class="section-content">
+    <table class="nice-table">
+      <tr><th style="background:#475569;">Library</th><th style="background:#475569;">Role</th><th style="background:#475569;">Why This One</th></tr>
+      <tr><td><strong>Streamlit</strong></td><td>Web framework</td><td>Build interactive ML apps in pure Python — no HTML/CSS/JS needed</td></tr>
+      <tr><td><strong>Ultralytics (YOLOv8)</strong></td><td>Object detection</td><td>State-of-the-art detection, easy API, built-in tracking</td></tr>
+      <tr><td><strong>OpenCV</strong></td><td>Video processing</td><td>Read/write video frames, colour space conversion, heatmap colourmaps</td></tr>
+      <tr><td><strong>PIL (Pillow)</strong></td><td>Image preprocessing</td><td>Brightness/contrast/sharpness adjustment via ImageEnhance</td></tr>
+      <tr><td><strong>Plotly</strong></td><td>Interactive charts</td><td>Bar charts and histograms that users can hover/zoom</td></tr>
+      <tr><td><strong>Pandas</strong></td><td>Data handling</td><td>Structure detections as DataFrames for display, filtering, and export</td></tr>
+      <tr><td><strong>SciPy</strong></td><td>Heatmap smoothing</td><td>Gaussian filter for smooth confidence density maps</td></tr>
+    </table>
+  </div></div>
+</div>
+
+<!-- SUMMARY -->
+<div class="section open">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:#E8F5E9;">🎓</div>
+    <div><div class="section-title">Summary — Key Takeaways</div></div>
+    <span class="toggle-arrow">▼</span>
+  </div>
+  <div class="section-body"><div class="section-content">
+    <div class="key-point"><strong>🎯 Takeaway #1  YOLO = Real-Time Detection.</strong> YOLOv8 processes an entire image in a single forward pass, detecting all 80 COCO classes simultaneously with bounding boxes and confidence scores. No sliding windows, no region proposals.</div>
+
+    <div class="key-point"><strong>🎯 Takeaway #2  Streamlit Makes ML Apps Easy.</strong> The entire web app (upload, detect, display, chart, export) is built in a single Python file using Streamlit's declarative API. No frontend skills needed.</div>
+
+    <div class="key-point"><strong>🎯 Takeaway #3  Caching Is Critical for Performance.</strong> <code>@st.cache_resource</code> ensures the YOLO model loads only once, not on every user interaction. Without this, the app would freeze for 2–3 seconds on every click.</div>
+
+    <div class="key-point"><strong>🎯 Takeaway #4  Video Tracking Adds a Dimension.</strong> YOLO's built-in tracking (<code>model.track()</code>) assigns persistent IDs across frames, turning simple detection into object tracking. This enables counting unique objects and analysing movement patterns.</div>
+
+    <div class="key-point"><strong>🎯 Takeaway #5  DataFrames Enable Flexibility.</strong> Converting YOLO's raw output into a Pandas DataFrame allows for powerful filtering, charting, and export options. The structured format is key to building a user-friendly interface.</div>
+    
+    
+    <div style="background:linear-gradient(135deg,#DC2626,#7C3AED,#059669);border-radius:14px;padding:20px;margin-top:16px;color:#fff;">
+      <h4 style="font-family:'Fredoka';margin-bottom:8px;">🛠️ App Feature Summary:</h4>
+      <p style="opacity:.92;font-size:.87rem;">
+      4 input modes (single image, batch, video, webcam) · 5 YOLO model sizes (nano→xlarge) · adjustable confidence and IoU thresholds · class filtering (80 COCO classes) · image preprocessing (brightness/contrast/sharpness) · detection heatmap overlay · interactive Plotly charts · video object tracking with persistent IDs · detections-over-time timeline · CSV/JSON/PNG export · deployed on HuggingFace Spaces
+      </p>
+    </div>
+  </div></div>
+</div>
+
+</div>
+<script>function toggle(h){h.closest('.section').classList.toggle('open')}</script>
+</body>
+</html>
