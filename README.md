@@ -4,7 +4,7 @@ A full-featured web application that detects objects in images, batch uploads, v
 
 > **🌐 [Try the Live Demo →](https://huggingface.co/spaces/Gamitha/yolo-detector)**
 >
-> **💡 [View the Interactive Explanation →](https://htmlpreview.github.io/?https://github.com/GamithaManawadu/yolo-detector/blob/main/Explanations/yolo-app-explained.html)**
+> **💡 [View the Interactive Explanation →](https://htmlpreview.github.io/?https://github.com/GamithaManawadu/YOLO-Object-Detection-Web-App/blob/main/Explanations/yolo-app-explained.html)**
 
 <p align="center">
   <img src="images/demo_screenshots.png" width="48%">
